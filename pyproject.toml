@@ -13,7 +13,11 @@ dynamic = ["version"]
 dependencies = [
     'apache-airflow',
     'apache-airflow-providers-apache-spark',
+    'boto3',
+    'openai',
+    'pandas',
     'pyspark',
+    'scikit-learn'
 ]
 
 [project.optional-dependencies]
