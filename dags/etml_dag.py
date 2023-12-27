@@ -6,8 +6,8 @@ import os
 import sys
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from utils.summarize import LLMSummarizer
-from utils.cluster import Clusterer
+from mldemo.utils.summarize import LLMSummarizer
+from mldemo.utils.cluster import Clusterer
 import logging
 
 
@@ -21,8 +21,9 @@ bucket_name = os.environ.get('S3_BUCKET_NAME', 'your-s3-bucket-name')
 date = datetime.datetime.now().strftime('%Y-%m-%d')
 file_name = f'taxi-rides-{date}.json'
 
+
 with DAG(
-    dag_ID = 'etml'dag',
+    dag_id = 'etml_dag',
     start_date=pendulum.datetime(2021, 10, 1),
     schedule_interval='@daily',
     catchup=False,

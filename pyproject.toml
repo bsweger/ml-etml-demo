@@ -1,5 +1,5 @@
 [project]
-name = 'ml-etml-demo'
+name = 'mldemo'
 description = 'Chapter 09 project from Machine Learning Engineering With Python'
 license = {text = "MIT License"}
 readme = 'README.md'
@@ -13,11 +13,11 @@ dynamic = ["version"]
 dependencies = [
     'apache-airflow',
     'apache-airflow-providers-apache-spark',
-    'boto3',
+    'boto3==1.34.8',
     'openai',
     'pandas',
     'pyspark',
-    'scikit-learn'
+    'scikit-learn',
 ]
 
 [project.optional-dependencies]
@@ -28,7 +28,7 @@ dev = [
 ]
 
 [tools.setuptools]
-packages = ["src"]
+packages = ["mldemo"]
 
 [build-system]
 # Minimum requirements for the build system to execute.
@@ -41,4 +41,4 @@ line-length = 120
 quote-style = 'single'
 
 [tool.setuptools.dynamic]
-version = {attr = "src.__version__"}
+version = {attr = "mldemo.__version__"}

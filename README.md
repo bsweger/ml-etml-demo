@@ -27,3 +27,15 @@ In addition, you will need:
 To run this project: clone the repo, open a terminal, make sure you're using Python 3.10, and follow the instructions below.
 
 **Note:** These directions assume a macOS operating system and will likely require modification to work on a Windows machine.
+
+### Install dependencies
+
+1. From the root of the repo, create a virtual environment: `python3 -m venv .venv --prompt etml'
+2. Activate the virtual environment: `source .venv/bin/activate`
+3. Install the project as a local, editable package, and install its dependencies: `pip install -r requirements.txt -e .`
+
+### Start Airflow
+
+1. From the root of the repo, make sure you're in the virtual environment created above: `source .venv/bin/activate`
+2. Initialize the local airflow installation: `airflow standalone`. The auto-generated `admin` password will be printed to the terminal
+3. You should now be able to access the Airflow UI in your browser at http://localhost:8080. Log in with the username `admin` and the password printed to the terminal in the previous step

@@ -2,3 +2,12 @@ export S3_BUCKET_NAME=<name-of-your-S3-bucket>
 export AWS_ACCES_KEY_ID=<your-AWS-access-key-ID>
 export AWS_SECRET_ACCESS_KEY=<your-AWS-secret-access-key>
 export AWS_DEFAULT_REGION=<your-AWS-region (e.g. us-east-1)>
+
+export OPENAI_API_KEY = <your OpenAI API key>
+
+# override the airflow DAGs folder specified in airflow.cfg
+# (this demo will store the DAGs in the same repo as the code)
+export AIRFLOW__CORE__DAGS_FOLDER=<absolute path to the dags directory in this repo>
+export AIRFLOW__CORE__LOAD_EXAMPLES=False
+
+

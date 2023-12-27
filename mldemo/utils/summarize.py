@@ -21,12 +21,13 @@ Summarise the above information in 3 sentences or less.
 The returned text will then be added to the pandas dataframe as df["summary"] and then saved to the clustered_summarized_{date}.json file in AWS S3.
 '''
 
-from utils.extractor import Extractor
+from mldemo.utils.extractor import Extractor
 from textwrap import dedent
 import datetime
 import openai
 import boto3
 import os
+from mldemo.config.config import get_config
 
 openai.api_key = os.environ['OPENAI_API_KEY']
 
@@ -34,6 +35,7 @@ class LLMSummarizer:
     def __init__(self, bucket_name: str, file_name: str) -> None:
         self.bucket_name = bucket_name
         self.file_name = file_name
+        self.openai_model = get_config().get('openai_model', 'gpt-3.5-turbo')
 
     def summarize(self) -> None:
         extractor = Extractor(self.bucket_name, self.file_name)
@@ -64,7 +66,7 @@ class LLMSummarizer:
         # Try chatgpt api and fall back if not working
         try:
             response = openai.ChatCompletion.create(
-                model = "gpt-3.5-turbo",
+                model = self.openai_model,
                 temperature = 0.3,
                 messages = [{"role": "user", "content": prompt}]
             )
