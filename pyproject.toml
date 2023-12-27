@@ -11,6 +11,9 @@ classifiers = [
 dynamic = ["version"]
 
 dependencies = [
+    'apache-airflow',
+    'apache-airflow-providers-apache-spark',
+    'pyspark',
 ]
 
 [project.optional-dependencies]
