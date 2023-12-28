@@ -3,18 +3,26 @@ Simulate taxi ride data for clustering.
 
 """
 import logging
+from pathlib import Path
+import sys
 import numpy as np
 import pandas as pd
 import datetime
 from numpy.random import MT19937
 from numpy.random import RandomState, SeedSequence
 
+logger = logging.getLogger(__name__)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+
 rs = RandomState(MT19937(SeedSequence(123456789)))
 
 
 # Define simulate ride data function
 def simulate_ride_distances():
-    logging.info("Simulating ride distances ...")
+    logger.info("Simulating ride distances ...")
     ride_dists = np.concatenate(
         (
             10 * np.random.random(size=370),
@@ -27,7 +35,7 @@ def simulate_ride_distances():
 
 
 def simulate_ride_speeds():
-    logging.info("Simulating ride speeds ...")
+    logger.info("Simulating ride speeds ...")
     ride_speeds = np.concatenate(
         (
             np.random.normal(loc=30, scale=5, size=370),
@@ -40,7 +48,7 @@ def simulate_ride_speeds():
 
 
 def simulate_ride_data():
-    logging.info("Simulating ride data ...")
+    logger.info("Simulating ride data ...")
     # Simulate some ride data ...
     ride_dists = simulate_ride_distances()
     ride_speeds = simulate_ride_speeds()
@@ -106,17 +114,21 @@ def simulate_text_data(df: pd.DataFrame) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    import os
 
-    # If data present, read it in
-    # file_path = 'taxi-rides.csv'
+    # If there is no data for today's taxi rides, simulate it and write to disk
     date = datetime.datetime.now().strftime("%Y%m%d")
-    file_path = f"../data/taxi-rides-{date}.json"
-    if os.path.exists(file_path):
-        # df = pd.read_csv(file_path)
-        pass
+    parent_path = f'{Path(__file__).resolve().parent.parent}/data'
+    file_name = f'taxi-rides-{date}.json'
+    file_path = Path(f'{parent_path}/{file_name}')
+
+    if file_path.exists():
+        logger.info({
+            'msg': 'taxi data exists',
+            'file_name': file_name,
+            'path': parent_path
+        })
     else:
-        logging.info("Simulating ride data")
+        logger.info({'msg': 'simulating ride data'})
+        Path(parent_path).mkdir(exist_ok=True)
         df = simulate_ride_data()
-        # df.to_csv(file_path, index=False)
         df.to_json(file_path, orient="records")
