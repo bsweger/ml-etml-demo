@@ -8,8 +8,11 @@ import sys
 import numpy as np
 import pandas as pd
 import datetime
+import boto3
 from numpy.random import MT19937
 from numpy.random import RandomState, SeedSequence
+
+from mldemo.config.config import get_config
 
 logger = logging.getLogger(__name__)
 handler = logging.StreamHandler(sys.stdout)
@@ -18,7 +21,6 @@ logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
 rs = RandomState(MT19937(SeedSequence(123456789)))
-
 
 # Define simulate ride data function
 def simulate_ride_distances():
@@ -117,18 +119,37 @@ if __name__ == "__main__":
 
     # If there is no data for today's taxi rides, simulate it and write to disk
     date = datetime.datetime.now().strftime("%Y%m%d")
-    parent_path = f'{Path(__file__).resolve().parent.parent}/data'
     file_name = f'taxi-rides-{date}.json'
+
+    parent_path = f'{Path(__file__).resolve().parent.parent}/data'
     file_path = Path(f'{parent_path}/{file_name}')
+    logger.info({
+        'msg': 'checking for local file of simulated taxi data',
+        'file_name': file_name,
+        'path': parent_path
+    })
 
     if file_path.exists():
         logger.info({
-            'msg': 'taxi data exists',
-            'file_name': file_name,
-            'path': parent_path
+            'msg': 'local data already exists, skipping simulation'
         })
     else:
         logger.info({'msg': 'simulating ride data'})
         Path(parent_path).mkdir(exist_ok=True)
         df = simulate_ride_data()
         df.to_json(file_path, orient="records")
+
+    # Write simulated data to S3 (for simplicity, don't check if it already exists, just overwrite it)
+    s3_bucket = get_config()['s3']['bucket_name']
+    s3_prefix = get_config()['s3']['bucket_prefix']
+    s3 = boto3.client('s3')
+    s3.upload_file(
+        str(file_path),
+        s3_bucket,
+        f'{s3_prefix}/{file_name}'
+    )
+    logger.info({
+        'msg': 'wrote simulated data to S3',
+        'bucket': s3_bucket,
+        'object': f'{s3_prefix}/{file_name}'
+    })
