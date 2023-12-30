@@ -18,7 +18,8 @@ from mldemo.config.config import get_config
 
 class Clusterer:
     def __init__(
-        self, bucket_name: str, 
+        self, bucket_name: str,
+        bucket_prefix: str,
         file_name: str, 
         model_params: dict = get_config().get(
             'model_params',
@@ -26,11 +27,18 @@ class Clusterer:
     ) -> None:
         self.model_params = model_params
         self.bucket_name = bucket_name
-        self.file_name = file_name
+        self.bucket_prefix = bucket_prefix
+        self.file_name = f'{bucket_prefix}/{file_name}'
         
     def cluster_and_label(self, features: list) -> None:
+        logging.info({
+            'msg': 'Extracting data from S3',
+            'object': f'{self.bucket_name}/{self.file_name}'
+        })
         extractor = Extractor(self.bucket_name, self.file_name)
         df = extractor.extract_data()
+
+        logging.info({'msg': 'Starting fit_transform'})
         df_features = df[features]
         df_features = StandardScaler().fit_transform(df_features)
         db = DBSCAN(**self.model_params).fit(df_features)
@@ -47,5 +55,5 @@ class Clusterer:
         boto3.client('s3').put_object(
             Body=df.to_json(orient='records'), 
             Bucket=self.bucket_name, 
-            Key=f"clustered_data_{date}.json"
+            Key=f"{self.bucket_prefix}/clustered_data_{date}.json"
         )

@@ -27,28 +27,36 @@ import datetime
 import openai
 import boto3
 import os
+import logging
 from mldemo.config.config import get_config
 
+logging.basicConfig(level=logging.INFO)
 openai.api_key = os.environ['OPENAI_API_KEY']
 
 class LLMSummarizer:
-    def __init__(self, bucket_name: str, file_name: str) -> None:
+    def __init__(self, bucket_name: str, bucket_prefix: str, file_name: str) -> None:
         self.bucket_name = bucket_name
-        self.file_name = file_name
+        self.bucket_prefix = bucket_prefix
+        self.file_name = f'{bucket_prefix}/{file_name}'
         self.openai_model = get_config().get('openai_model', 'gpt-3.5-turbo')
 
     def summarize(self) -> None:
+        logging.info({
+            'msg': 'Extracting data from S3',
+            'object': f'{self.bucket_name}/{self.file_name}'
+        })
         extractor = Extractor(self.bucket_name, self.file_name)
         df = extractor.extract_data()
         df['summary'] = ''
         
+        logging.info({'msg': 'Adding prompts'})
         df['prompt'] = df.apply(lambda x: self.format_prompt(x['news'], x['weather'], x['traffic']), axis=1)
         df.loc[df['label']==-1, 'summary'] = df.loc[df['label']==-1, 'prompt'].apply(lambda x: self.generate_summary(x))
         date = datetime.datetime.now().strftime("%Y%m%d")
         boto3.client('s3').put_object(
             Body=df.to_json(orient='records'), 
             Bucket=self.bucket_name, 
-            Key=f"clustered_summarized_{date}.json"
+            Key=f"{self.bucket_prefix}/clustered_summarized_{date}.json"
         )
     
     def format_prompt(self, news: str, weather: str, traffic: str) -> str:

@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import datetime
 import pendulum
-import os
 import sys
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from mldemo.utils.summarize import LLMSummarizer
 from mldemo.utils.cluster import Clusterer
+from mldemo.config.config import get_config
 import logging
 
 
@@ -17,7 +17,8 @@ handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s -
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
-bucket_name = os.environ.get('S3_BUCKET_NAME', 'your-s3-bucket-name')
+bucket_name = get_config()['s3']['bucket_name']
+bucket_prefix = get_config()['s3']['bucket_prefix']
 date = datetime.datetime.now().strftime('%Y-%m-%d')
 file_name = f'taxi-rides-{date}.json'
 
@@ -32,7 +33,7 @@ with DAG(
     logging.info('Extracting and clustering data...')
     extract_cluster_load_task = PythonOperator(
         task_id = 'extract_cluster_save',
-        python_callable=Clusterer(bucket_name, file_name).\
+        python_callable=Clusterer(bucket_name, bucket_prefix, file_name).\
             cluster_and_label,
         op_kwargs={'features': ['ride_dist', 'ride_time']}
     )
@@ -40,7 +41,7 @@ with DAG(
     logging.info('Extracting and summarizing data...')
     extract_summarize_load_task = PythonOperator(
         task_id='extract_summarize',
-        python_callable=LLMSummarizer(bucket_name, file_name).summarize
+        python_callable=LLMSummarizer(bucket_name, bucket_prefix, file_name).summarize
     )
 
     extract_cluster_load_task >> extract_summarize_load_task

@@ -118,7 +118,7 @@ def simulate_text_data(df: pd.DataFrame) -> pd.DataFrame:
 if __name__ == "__main__":
 
     # If there is no data for today's taxi rides, simulate it and write to disk
-    date = datetime.datetime.now().strftime("%Y%m%d")
+    date = datetime.datetime.now().strftime("%Y-%m-%d")
     file_name = f'taxi-rides-{date}.json'
 
     parent_path = f'{Path(__file__).resolve().parent.parent}/data'
