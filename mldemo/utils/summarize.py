@@ -25,13 +25,14 @@ from mldemo.utils.extractor import Extractor
 from textwrap import dedent
 import datetime
 from openai import OpenAI
+import openai
 
 import boto3
 import os
 import logging
 from mldemo.config.config import get_config
 
-client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+client = OpenAI(api_key=os.environ['OPENAI_API_KEY'], max_retries=2)
 
 
 logging.basicConfig(level=logging.INFO)
@@ -73,14 +74,37 @@ class LLMSummarizer:
             Summarise the above information in 3 sentences or less.
             ''')
         return prompt
+    
     def generate_summary(self, prompt: str) -> str:
-        # Try chatgpt api and fall back if not working
+        # Try the chatgpt model and fall back to another one if necessary
+        logging.info({
+            'msg': 'Attempting to summarize with chatgpt',
+            'model': self.openai_model
+        })
         try:
-            response = client.chat.completions.create(model = self.openai_model,
-            temperature = 0.3,
-            messages = [{"role": "user", "content": prompt}])
+            response = client.chat.completions.with_raw_response.create(
+                model = self.openai_model,
+                temperature = 0.3,
+                messages = [{"role": "user", "content": prompt}])
             return response.choices[0].message['content']
-        except:
-            response = client.completions.create(model="text-davinci-003",
-            prompt = prompt)
-            return response['choices'][0]['text']
+        except Exception as e:
+            fallback_model = 'text-davinci-003'
+            logging.info({
+                'msg': 'Attempting fallback chatgpt summary',
+                'mode': fallback_model
+            })
+            try:
+                response = client.completions.with_raw_response.create(model=fallback_model, prompt = prompt)
+                return response['choices'][0]['text']
+            except openai.RateLimitError as e:
+                # For 429s, Openai returns header info with more specifics
+                # https://platform.openai.com/docs/guides/rate-limits/rate-limits-in-headers
+                # These headers are supposed to be available via the Python client, though I
+                # couldn't see them when testing. Logging the response headers anyway.
+                # https://github.com/openai/openai-python/issues/416#issuecomment-1795428669
+                logging.exception({
+                    'msg': e.message,
+                    'response_headers': e.response.headers
+                })
+                # If we're getting rate limited, just stop the demo
+                raise e
