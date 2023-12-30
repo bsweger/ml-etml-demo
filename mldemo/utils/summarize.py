@@ -24,14 +24,17 @@ The returned text will then be added to the pandas dataframe as df["summary"] an
 from mldemo.utils.extractor import Extractor
 from textwrap import dedent
 import datetime
-import openai
+from openai import OpenAI
+
 import boto3
 import os
 import logging
 from mldemo.config.config import get_config
 
+client = OpenAI(api_key=os.environ['OPENAI_API_KEY'])
+
+
 logging.basicConfig(level=logging.INFO)
-openai.api_key = os.environ['OPENAI_API_KEY']
 
 class LLMSummarizer:
     def __init__(self, bucket_name: str, bucket_prefix: str, file_name: str) -> None:
@@ -73,15 +76,11 @@ class LLMSummarizer:
     def generate_summary(self, prompt: str) -> str:
         # Try chatgpt api and fall back if not working
         try:
-            response = openai.ChatCompletion.create(
-                model = self.openai_model,
-                temperature = 0.3,
-                messages = [{"role": "user", "content": prompt}]
-            )
+            response = client.chat.completions.create(model = self.openai_model,
+            temperature = 0.3,
+            messages = [{"role": "user", "content": prompt}])
             return response.choices[0].message['content']
         except:
-            response = openai.Completion.create(
-                model="text-davinci-003",
-                prompt = prompt
-            )
+            response = client.completions.create(model="text-davinci-003",
+            prompt = prompt)
             return response['choices'][0]['text']
