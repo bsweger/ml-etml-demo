@@ -32,7 +32,7 @@ To run this project: clone the repo, open a terminal, make sure you're using Pyt
 
 1. From the root of the repo, create a virtual environment: `python3 -m venv .venv --prompt etml'
 2. Activate the virtual environment: `source .venv/bin/activate`
-3. Install the project as a local, editable package, and install its dependencies: `pip install -r requirements.txt -e .`
+3. Install the project as a local, editable package, and install its dependencies: `pip install -r requirements/requirements.txt -e .`
 
 ### Start Airflow
 
