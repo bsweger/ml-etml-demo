@@ -24,6 +24,7 @@ dependencies = [
 dev = [
     'mypy',
     'pytest',
+    'pre-commit',
     'ruff',
 ]
 
@@ -36,6 +37,7 @@ requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
 [tool.ruff]
 line-length = 120
+extend-select = ["I"]
 
 [tool.ruff.format]
 quote-style = 'single'

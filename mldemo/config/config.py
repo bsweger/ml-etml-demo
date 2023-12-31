@@ -2,10 +2,10 @@
 
 import os
 
-#TODO: this is a pretty janky config, but it works
+# TODO: this is a pretty janky config, but it works
+
 
 def get_config() -> dict:
-
     config = {}
 
     openai_model = 'gpt-3.5-turbo'
@@ -17,7 +17,7 @@ def get_config() -> dict:
 
     s3 = {
         'bucket_name': os.environ.get('S3_BUCKET_NAME', 'your-s3-bucket-name'),
-        'bucket_prefix': os.environ.get('S3_BUCKET_PREFIX', 'your-s3-bucket-prefix')
+        'bucket_prefix': os.environ.get('S3_BUCKET_PREFIX', 'your-s3-bucket-prefix'),
     }
 
     config['model_params'] = model_params

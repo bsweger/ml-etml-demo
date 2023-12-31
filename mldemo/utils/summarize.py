@@ -1,4 +1,4 @@
-'''
+"""
 This script will read in clustered taxi ride data from the clustered_data_{date}.json file and then 
 use the OpenAI API to generate a summary of the text where the clustering returned a label of '-1' (i.e an outlier).
 
@@ -19,23 +19,25 @@ Summarise the above information in 3 sentences or less.
 "
 
 The returned text will then be added to the pandas dataframe as df["summary"] and then saved to the clustered_summarized_{date}.json file in AWS S3.
-'''
+"""
 
-from mldemo.utils.extractor import Extractor
-from textwrap import dedent
 import datetime
-from openai import OpenAI
-import openai
+import logging
+import os
+from textwrap import dedent
 
 import boto3
-import os
-import logging
+import openai
+from openai import OpenAI
+
 from mldemo.config.config import get_config
+from mldemo.utils.extractor import Extractor
 
 client = OpenAI(api_key=os.environ['OPENAI_API_KEY'], max_retries=2)
 
 
 logging.basicConfig(level=logging.INFO)
+
 
 class LLMSummarizer:
     def __init__(self, bucket_name: str, bucket_prefix: str, file_name: str) -> None:
@@ -45,26 +47,26 @@ class LLMSummarizer:
         self.openai_model = get_config().get('openai_model', 'gpt-3.5-turbo')
 
     def summarize(self) -> None:
-        logging.info({
-            'msg': 'Extracting data from S3',
-            'object': f'{self.bucket_name}/{self.file_name}'
-        })
+        logging.info({'msg': 'Extracting data from S3', 'object': f'{self.bucket_name}/{self.file_name}'})
         extractor = Extractor(self.bucket_name, self.file_name)
         df = extractor.extract_data()
         df['summary'] = ''
-        
+
         logging.info({'msg': 'Adding prompts'})
         df['prompt'] = df.apply(lambda x: self.format_prompt(x['news'], x['weather'], x['traffic']), axis=1)
-        df.loc[df['label']==-1, 'summary'] = df.loc[df['label']==-1, 'prompt'].apply(lambda x: self.generate_summary(x))
-        date = datetime.datetime.now().strftime("%Y%m%d")
-        boto3.client('s3').put_object(
-            Body=df.to_json(orient='records'), 
-            Bucket=self.bucket_name, 
-            Key=f"{self.bucket_prefix}/clustered_summarized_{date}.json"
+        df.loc[df['label'] == -1, 'summary'] = df.loc[df['label'] == -1, 'prompt'].apply(
+            lambda x: self.generate_summary(x)
         )
-    
+        date = datetime.datetime.now().strftime('%Y%m%d')
+        boto3.client('s3').put_object(
+            Body=df.to_json(orient='records'),
+            Bucket=self.bucket_name,
+            Key=f'{self.bucket_prefix}/clustered_summarized_{date}.json',
+        )
+
     def format_prompt(self, news: str, weather: str, traffic: str) -> str:
-        prompt = dedent(f'''
+        prompt = dedent(
+            f"""
             The following information describes conditions relevant to taxi journeys through a single day in Glasgow, Scotland.
 
             News: {news}
@@ -72,29 +74,23 @@ class LLMSummarizer:
             Traffic: {traffic}
 
             Summarise the above information in 3 sentences or less.
-            ''')
+            """
+        )
         return prompt
-    
+
     def generate_summary(self, prompt: str) -> str:
         # Try the chatgpt model and fall back to another one if necessary
-        logging.info({
-            'msg': 'Attempting to summarize with chatgpt',
-            'model': self.openai_model
-        })
+        logging.info({'msg': 'Attempting to summarize with chatgpt', 'model': self.openai_model})
         try:
             response = client.chat.completions.with_raw_response.create(
-                model = self.openai_model,
-                temperature = 0.3,
-                messages = [{"role": "user", "content": prompt}])
+                model=self.openai_model, temperature=0.3, messages=[{'role': 'user', 'content': prompt}]
+            )
             return response.choices[0].message['content']
-        except Exception as e:
+        except Exception:
             fallback_model = 'text-davinci-003'
-            logging.info({
-                'msg': 'Attempting fallback chatgpt summary',
-                'mode': fallback_model
-            })
+            logging.info({'msg': 'Attempting fallback chatgpt summary', 'mode': fallback_model})
             try:
-                response = client.completions.with_raw_response.create(model=fallback_model, prompt = prompt)
+                response = client.completions.with_raw_response.create(model=fallback_model, prompt=prompt)
                 return response['choices'][0]['text']
             except openai.RateLimitError as e:
                 # For 429s, Openai returns header info with more specifics
@@ -102,9 +98,6 @@ class LLMSummarizer:
                 # These headers are supposed to be available via the Python client, though I
                 # couldn't see them when testing. Logging the response headers anyway.
                 # https://github.com/openai/openai-python/issues/416#issuecomment-1795428669
-                logging.exception({
-                    'msg': e.message,
-                    'response_headers': e.response.headers
-                })
+                logging.exception({'msg': e.message, 'response_headers': e.response.headers})
                 # If we're getting rate limited, just stop the demo
                 raise e

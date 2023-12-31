@@ -1,5 +1,6 @@
-import pandas as pd
 import boto3
+import pandas as pd
+
 
 class Extractor:
     def __init__(self, bucket_name: str, file_name: str) -> None:

@@ -1,40 +1,37 @@
-'''
+"""
 This script executes the DBSCAN clustering algorithm on the simulated taxi ride dataset.
-'''
+"""
 
-#from simulate_data import simulate_ride_data
-import pandas as pd
-import numpy as np
+# from simulate_data import simulate_ride_data
 import datetime
 import logging
-logging.basicConfig(level=logging.INFO)
 
 import boto3
-from sklearn.preprocessing import StandardScaler
+import numpy as np
 from sklearn.cluster import DBSCAN
-from mldemo.utils.extractor import Extractor
+from sklearn.preprocessing import StandardScaler
 
 from mldemo.config.config import get_config
+from mldemo.utils.extractor import Extractor
+
+logging.basicConfig(level=logging.INFO)
+
 
 class Clusterer:
     def __init__(
-        self, bucket_name: str,
+        self,
+        bucket_name: str,
         bucket_prefix: str,
-        file_name: str, 
-        model_params: dict = get_config().get(
-            'model_params',
-            {'eps': 0.3, 'min_samples': 10})
+        file_name: str,
+        model_params: dict = get_config().get('model_params', {'eps': 0.3, 'min_samples': 10}),
     ) -> None:
         self.model_params = model_params
         self.bucket_name = bucket_name
         self.bucket_prefix = bucket_prefix
         self.file_name = f'{bucket_prefix}/{file_name}'
-        
+
     def cluster_and_label(self, features: list) -> None:
-        logging.info({
-            'msg': 'Extracting data from S3',
-            'object': f'{self.bucket_name}/{self.file_name}'
-        })
+        logging.info({'msg': 'Extracting data from S3', 'object': f'{self.bucket_name}/{self.file_name}'})
         extractor = Extractor(self.bucket_name, self.file_name)
         df = extractor.extract_data()
 
@@ -50,10 +47,10 @@ class Clusterer:
 
         # Add labels to the dataset and return.
         df['label'] = labels
-        
-        date = datetime.datetime.now().strftime("%Y%m%d")
+
+        date = datetime.datetime.now().strftime('%Y%m%d')
         boto3.client('s3').put_object(
-            Body=df.to_json(orient='records'), 
-            Bucket=self.bucket_name, 
-            Key=f"{self.bucket_prefix}/clustered_data_{date}.json"
+            Body=df.to_json(orient='records'),
+            Bucket=self.bucket_name,
+            Key=f'{self.bucket_prefix}/clustered_data_{date}.json',
         )
