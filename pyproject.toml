@@ -31,6 +31,10 @@ dev = [
 [tools.setuptools]
 packages = ["mldemo"]
 
+[tool.setuptools.packages.find]
+include = ['mldemo']
+exclude = ['dags']
+
 [build-system]
 # Minimum requirements for the build system to execute.
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
