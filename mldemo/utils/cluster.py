@@ -49,8 +49,10 @@ class Clusterer:
         df['label'] = labels
 
         date = datetime.datetime.now().strftime('%Y%m%d')
+        object_key = f'{self.bucket_prefix}/clustered_data_{date}.json'
         boto3.client('s3').put_object(
             Body=df.to_json(orient='records'),
             Bucket=self.bucket_name,
-            Key=f'{self.bucket_prefix}/clustered_data_{date}.json',
+            Key=object_key,
         )
+        logging.info({'msg': 'Wrote clustered data to S3', 'object': object_key})
