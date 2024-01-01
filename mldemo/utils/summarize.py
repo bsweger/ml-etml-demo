@@ -80,18 +80,17 @@ class LLMSummarizer:
 
     def generate_summary(self, prompt: str) -> str:
         # Try the chatgpt model and fall back to another one if necessary
-        logging.info({'msg': 'Attempting to summarize with chatgpt', 'model': self.openai_model})
         try:
-            response = client.chat.completions.with_raw_response.create(
+            response = client.chat.completions.create(
                 model=self.openai_model, temperature=0.3, messages=[{'role': 'user', 'content': prompt}]
             )
-            return response.choices[0].message['content']
+            return response.choices[0].message.content
         except Exception:
             fallback_model = 'text-davinci-003'
             logging.info({'msg': 'Attempting fallback chatgpt summary', 'mode': fallback_model})
             try:
-                response = client.completions.with_raw_response.create(model=fallback_model, prompt=prompt)
-                return response['choices'][0]['text']
+                response = client.completions.create(model=fallback_model, prompt=prompt)
+                return response.choices[0].text
             except openai.RateLimitError as e:
                 # For 429s, Openai returns header info with more specifics
                 # https://platform.openai.com/docs/guides/rate-limits/rate-limits-in-headers
