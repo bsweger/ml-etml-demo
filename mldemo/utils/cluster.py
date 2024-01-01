@@ -48,7 +48,7 @@ class Clusterer:
         # Add labels to the dataset and return.
         df['label'] = labels
 
-        date = datetime.datetime.now().strftime('%Y%m%d')
+        date = datetime.datetime.now().strftime('%Y-%m-%d')
         object_key = f'{self.bucket_prefix}/clustered_data_{date}.json'
         boto3.client('s3').put_object(
             Body=df.to_json(orient='records'),

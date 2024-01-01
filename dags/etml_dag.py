@@ -22,7 +22,7 @@ bucket_name = get_config()['s3']['bucket_name']
 bucket_prefix = get_config()['s3']['bucket_prefix']
 date = datetime.datetime.now().strftime('%Y-%m-%d')
 file_name = f'taxi-rides-{date}.json'
-
+clustered_file_name = f'clustered_data_{date}.json'
 
 with DAG(
     dag_id='etml_dag',
@@ -40,7 +40,8 @@ with DAG(
 
     logging.info('Extracting and summarizing data...')
     extract_summarize_load_task = PythonOperator(
-        task_id='extract_summarize', python_callable=LLMSummarizer(bucket_name, bucket_prefix, file_name).summarize
+        task_id='extract_summarize',
+        python_callable=LLMSummarizer(bucket_name, bucket_prefix, clustered_file_name).summarize,
     )
 
     extract_cluster_load_task >> extract_summarize_load_task
