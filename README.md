@@ -5,9 +5,24 @@ This repo is a modified version of the Chapter 9 project in [_Machine Learing En
 
 ## Background
 
+This code is a simplified representation of the project from Chapter 9 of MLEP. The objective of the project is to process a day's worth of simluated taxi ride data by:
+
+* finding rides with distance and time outliers
+* annotating these outlier rides with an LLM-based summary of the ride's associated news, weather, and traffic information.
+
+The goal is piecing together the components of a machine learning project, not to build the best possible model or demonstrate engineering best practices (e.g., there aren't tests or a lot of error-handling).
 
 ## Overview
 
+This project contains an Airflow DAG (directed acyclic graph) that orchestrates three Python-based tasks to simulate, cluster, and summarize taxi ride data.
+
+1. `simulate_data_task`: Invokes `utils.simulate` to generate simulated taxi ride data for the current date and save it to S3.
+
+2. `extract_cluster_load_task`: Invokes `utils.cluster` to pull the simulated taxi data from S3, do some normalization, and run a clustering algorithm on it. The results are saved back to S3.
+
+3. `extract_summarize_load_task`: Invokes `utils.summarize` that uses OpenAI models to summarize the combined news, weather, and traffic conditions for each taxi ride marked as an outlier by the clustering task. These summaries are added to the data, which is saved back to S3 once again.
+
+The DAG is scheduled to run daily.
 
 ## Prerequisites
 
