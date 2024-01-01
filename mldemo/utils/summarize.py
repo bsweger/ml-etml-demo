@@ -54,15 +54,22 @@ class LLMSummarizer:
 
         logging.info({'msg': 'Adding prompts'})
         df['prompt'] = df.apply(lambda x: self.format_prompt(x['news'], x['weather'], x['traffic']), axis=1)
+
+        logging.info({'msg': 'Attempting to summarize with OpenAI', 'model': self.openai_model})
+        # for each row in the dataframe that represents an outlier in the clustered data, use an LLM
+        # to summarize the record's news, weather, and traffic information
         df.loc[df['label'] == -1, 'summary'] = df.loc[df['label'] == -1, 'prompt'].apply(
             lambda x: self.generate_summary(x)
         )
+
         date = datetime.datetime.now().strftime('%Y%m%d')
+        object_key = f'{self.bucket_prefix}/clustered_summarized_{date}.json'
         boto3.client('s3').put_object(
             Body=df.to_json(orient='records'),
             Bucket=self.bucket_name,
-            Key=f'{self.bucket_prefix}/clustered_summarized_{date}.json',
+            Key=object_key,
         )
+        logging.info({'msg': 'Wrote summarized data to S3', 'object': object_key})
 
     def format_prompt(self, news: str, weather: str, traffic: str) -> str:
         prompt = dedent(
