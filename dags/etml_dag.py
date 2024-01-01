@@ -9,6 +9,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 
 from mldemo.config.config import get_config
+from mldemo.utils import simulate
 from mldemo.utils.cluster import Clusterer
 from mldemo.utils.summarize import LLMSummarizer
 
@@ -31,6 +32,13 @@ with DAG(
     catchup=False,
 ) as dag:
     logging.info('DAG started')
+
+    logging.info('Generating simulated data...')
+    simulate_data_task = PythonOperator(
+        task_id='simulate_data',
+        python_callable=simulate.main,
+    )
+
     logging.info('Extracting and clustering data...')
     extract_cluster_load_task = PythonOperator(
         task_id='extract_cluster_save',
@@ -44,4 +52,4 @@ with DAG(
         python_callable=LLMSummarizer(bucket_name, bucket_prefix, clustered_file_name).summarize,
     )
 
-    extract_cluster_load_task >> extract_summarize_load_task
+    simulate_data_task >> extract_cluster_load_task >> extract_summarize_load_task

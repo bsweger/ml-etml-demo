@@ -114,7 +114,7 @@ def simulate_text_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-if __name__ == '__main__':
+def main():
     # If there is no data for today's taxi rides, simulate it and write to disk
     date = datetime.datetime.now().strftime('%Y-%m-%d')
     file_name = f'taxi-rides-{date}.json'
@@ -137,3 +137,7 @@ if __name__ == '__main__':
     s3 = boto3.client('s3')
     s3.upload_file(str(file_path), s3_bucket, f'{s3_prefix}/{file_name}')
     logger.info({'msg': 'wrote simulated data to S3', 'bucket': s3_bucket, 'object': f'{s3_prefix}/{file_name}'})
+
+
+if __name__ == '__main__':
+    main()
