@@ -17,7 +17,6 @@ To run this code, you will need the following installed on your local machine:
 
 In addition, you will need:
 
-* Java installed on your system (required by Spark)
 * An AWS S3 bucket + credentials that allow read/write access to it
 * An OpenAI API key
 
@@ -34,7 +33,7 @@ To run this project: clone the repo, open a terminal, make sure you're using Pyt
 
 1. From the root of the repo, create a virtual environment: `python3 -m venv .venv --prompt etml'
 2. Activate the virtual environment: `source .venv/bin/activate`
-3. Install the project as a local, editable package, and install its dependencies: `pip install -r requirements/requirements.txt -e .`
+3. Install the project as a local, editable package, and install its dependencies: `pip install -r requirements.txt -e .`
 
 ### Start Airflow
 
