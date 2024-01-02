@@ -72,8 +72,12 @@ Create the environment variables needed by this proejct (see [`.envrc-example`](
 1. `S3_BUCKET_NAME` and `S3_BUCKET_PREFIX`: used to read and write data to S3
 2. `AWS_ACCES_KEY_ID` and `AWS_SECRET_ACCESS_KEY`: AWS credentials with list, delete, get, and put permissions to the S3 bucket above (these are optional if you have an alternate method for boto to find your credentials)
 3. `OPENAI_API_KEY`: your OpenAI API key
+4. `AIRFLOW__CORE__DAGS_FOLDER`: the absolute path to the [`dags`](dags)directory in this repo (this tells Airflow where to look for DAGS, _e.g._, `/Users/you/yourcode/ml-python-etml/dags`)
 
 ### Start Airflow
+
+Start the local Airflow server that will run the [DAG for this demo](dags/etml_dag.py).
+The dag is scheduled to run daily, so it will start running immediately once the server has started.
 
 1. From the root of the repo, make sure you're in the virtual environment created above:
 
@@ -87,4 +91,6 @@ Create the environment variables needed by this proejct (see [`.envrc-example`](
     airflow standalone
     ```
 
-3. You should now be able to access the Airflow UI in your browser at http://localhost:8080. Log in with the username `admin` and the password printed to the terminal in the previous step
+3. You should now be able to access the Airflow UI in your browser at http://localhost:8080. Log in with the username `admin` and the password printed to the terminal in the previous step.
+
+If the setup was successful, your DAG should be running. You can check the status of the DAG by clicking on the `etml_dag` link in the [Airflow UI](https://airflow.apache.org/docs/apache-airflow/stable/ui.html). You can also check the status and logs of individual tasks by clicking on the `Graph View` tab.
