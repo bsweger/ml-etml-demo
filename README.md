@@ -46,12 +46,45 @@ To run this project: clone the repo, open a terminal, make sure you're using Pyt
 
 ### Install dependencies
 
-1. From the root of the repo, create a virtual environment: `python3 -m venv .venv --prompt etml'
-2. Activate the virtual environment: `source .venv/bin/activate`
-3. Install the project as a local, editable package, and install its dependencies: `pip install -r requirements.txt -e .`
+1. From the root of the repo, create a virtual environment:
+
+    ```
+    python3 -m venv .venv --prompt etml
+    ```
+
+2. Activate the virtual environment:
+
+    ```
+    source .venv/bin/activate
+    ```
+
+3. Install the project as a local, editable package, and install its dependencies:
+
+    ```
+    pip install -r requirements.txt -e .
+    ```
+
+
+### Create environment variables
+
+Create the environment variables needed by this proejct (see [`.envrc-example`](.envrc-example) for a template):
+
+1. `S3_BUCKET_NAME` and `S3_BUCKET_PREFIX`: used to read and write data to S3
+2. `AWS_ACCES_KEY_ID` and `AWS_SECRET_ACCESS_KEY`: AWS credentials with list, delete, get, and put permissions to the S3 bucket above (these are optional if you have an alternate method for boto to find your credentials)
+3. `OPENAI_API_KEY`: your OpenAI API key
 
 ### Start Airflow
 
-1. From the root of the repo, make sure you're in the virtual environment created above: `source .venv/bin/activate`
-2. Initialize the local airflow installation: `airflow standalone`. The auto-generated `admin` password will be printed to the terminal
+1. From the root of the repo, make sure you're in the virtual environment created above:
+
+    ```
+    source .venv/bin/activate
+    ```
+
+2. Initialize the local airflow installation. This command will send a lot of output to the terminal as the airflow server starts for the first time. Towards the end, look for the auto-generated `admin` password.
+
+    ```
+    airflow standalone
+    ```
+
 3. You should now be able to access the Airflow UI in your browser at http://localhost:8080. Log in with the username `admin` and the password printed to the terminal in the previous step
